@@ -19,7 +19,7 @@ function init() {
 	screen_height = canvas.height = window.innerHeight;
 	var boidsMargin = 100;
 	var obsMargin = 200;
-	for (var i = 0; i < 75; i++) {
+	for (var i = 0; i < 60; i++) {
 		boids[i] = new boidData(5, 0, '#ffffff', i);
 
 		var xPos = Math.random() * (canvas.width - 2 * boidsMargin) + boidsMargin;
