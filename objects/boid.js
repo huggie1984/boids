@@ -44,61 +44,88 @@ boidData.prototype = {
 		}
 	},
 	stayInBounds: function(canvas){
-		if (this.x < 0)  this.vx = -this.vx;
-		if (this.x > canvas.width) this.vx = -this.vx;
-		if (this.y < 0) this.vy = -this.vy;
-		if (this.y > canvas.height) this.vy = -this.vy;	
+		if (this.x < 50)  this.vx = -this.vx;
+		if (this.x > (canvas.width -50)) this.vx = -this.vx;
+		if (this.y < 50) this.vy = -this.vy;
+		if (this.y > (canvas.height -50)) this.vy = -this.vy;
 	},
 	wonder: function(b){
 		b.vx += (Math.random()-0.5)*0.5;
 		b.vy += (Math.random()-0.5)*0.5;	
 	},
 	cohesian: function(){
-		var flock = new Vector2D(0,0);
-		var count = 0;
-		for(var i=0; i< boids.length; i++){
+		var flock = new Vector2D(0, 0);
 
-				flock.x += boids[i].x;//get local positions
-				flock.y += boids[i].y;
+		// Average positions of all boids
+		for (var i = 0; i < boids.length; i++) {
+			flock.x += boids[i].x;
+			flock.y += boids[i].y;
 		}
-		flock.x /= (boids.length);//averageing the position
-		flock.y /= (boids.length);
-		return new Vector2D((flock.x -this.x)/100,(flock.y - this.y)/100);
+		flock.x /= boids.length;
+		flock.y /= boids.length;
+
+		// Ensure cohesion doesn't pull boids outside the boundary
+		var margin = 100; // Adjust margin as needed
+		flock.x = Math.max(margin, Math.min(flock.x, canvas.width - margin));
+		flock.y = Math.max(margin, Math.min(flock.y, canvas.height - margin));
+
+		return new Vector2D((flock.x - this.x) / 100, (flock.y - this.y) / 100);
 	},
 	separation: function(){
-		var aviod = new Vector2D(0,0);
-		for(var i=0; i< boids.length; i++){
+		var avoid = new Vector2D(0, 0);
+		var margin = 100; // Define a margin for boundary avoidance
+		var boundaryForce = 0.1; // Adjust force applied when near boundary
+		// Avoid other boids
+		for (var i = 0; i < boids.length; i++) {
 			var dx = boids[i].x - this.x;
 			var dy = boids[i].y - this.y;
-			var dist = Math.sqrt(dx*dx+dy*dy);
-			var neighbourhood = this.radius+boids[i].radius;
-			if (dist>0 && dist<Math.PI*this.radius*2){
-			aviod.x -= (boids[i].x - this.x);
-			aviod.y -= (boids[i].y - this.y);
-			aviod.normalize();
+			var dist = Math.sqrt(dx * dx + dy * dy);
+			var neighborhood = this.radius + boids[i].radius;
+			if (dist > 0 && dist < neighborhood * 2) {
+				avoid.x -= (boids[i].x - this.x);
+				avoid.y -= (boids[i].y - this.y);
+				avoid.normalize();
+			}
 		}
+		if (this.x < margin) {
+			avoid.x += boundaryForce;
 		}
-		return aviod;
+		if (this.x > canvas.width - margin) {
+			avoid.x -= boundaryForce;
+		}
+		if (this.y < margin) {
+			avoid.y += boundaryForce;
+		}
+		if (this.y > canvas.height - margin) {
+			avoid.y -= boundaryForce;
+		}
+		return avoid;
 	},
 	align: function(){
-		var flock_velocity = new Vector2D(0,0);
+		var flock_velocity = new Vector2D(0, 0);
 		var count = 0;
+		var neighborhoodRadius = 100; // Define a neighborhood radius for alignment
+
 		for (var i = 0; i < boids.length; i++) {
-		var dx = boids[i].x - this.x;
-		var dy = boids[i].y - this.y;
-		var dist = Math.sqrt(dx*dx+dy*dy);
-		if((dist>0)&& (dist < (Math.PI*this.radius)*4)){		
-				count ++;
-				flock_velocity.x += boids[i].vx;
+			var dx = boids[i].x - this.x;
+			var dy = boids[i].y - this.y;
+			var dist = Math.sqrt(dx * dx + dy * dy);
+
+			if (dist > 0 && dist < neighborhoodRadius) {  // Only include nearby boids
+				flock_velocity.x += boids[i].vx; // Accumulate velocity
 				flock_velocity.y += boids[i].vy;
+				count++;
+			}
 		}
+
+		if (count > 0) {
+			flock_velocity.x /= count; // Averaging velocity
+			flock_velocity.y /= count;
+
+			flock_velocity.normalize(); // Normalize the result
 		}
-		if(count > 0){
-		flock_velocity.x /= (boids.length);
-		flock_velocity.y /= (boids.length);
-		flock_velocity.normalize();
-		}
-		return new Vector2D((flock_velocity.x),(flock_velocity.y));
+
+		return new Vector2D(flock_velocity.x, flock_velocity.y);
 	},
 	obsAviodance: function(){
 		var aviod = new Vector2D(0,0);

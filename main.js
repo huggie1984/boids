@@ -9,8 +9,6 @@ var screen_height;
 var maxVelo = new Vector2D(5,5);
 
 var numObsticles = 5;
-var boidRange = document.getElementById("boidcount").value;
-var obRange = document.getElementById("obcount").value;
 var sepBox = document.getElementById("seperation");
 var cohBox = document.getElementById("cohesian");
 var alignBox = document.getElementById("alignment");
@@ -19,14 +17,24 @@ window.onload = init;
 function init() {
 	screen_width = canvas.width = window.innerWidth;
 	screen_height = canvas.height = window.innerHeight;
-	for(var i=0; i<80; i++){
-	boids[i] = new boidData(5,0,'#ffffff',i);
-	boids[i].pos2D = new Vector2D(Math.random()*canvas.width,Math.random()*canvas.height);
-	boids[i].velo2D = new Vector2D((Math.random()-0.5)*1.5,(Math.random()-0.5)*1.5);
+	var boidsMargin = 100;
+	var obsMargin = 200;
+	for (var i = 0; i < 75; i++) {
+		boids[i] = new boidData(5, 0, '#ffffff', i);
+
+		var xPos = Math.random() * (canvas.width - 2 * boidsMargin) + boidsMargin;
+		var yPos = Math.random() * (canvas.height - 2 * boidsMargin) + boidsMargin;
+
+		boids[i].pos2D = new Vector2D(xPos, yPos);
+
+		boids[i].velo2D = new Vector2D((Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 1.5);
 	}
-	for(var j=0; j<numObsticles; j++){
-	obsticles[j] = new boidData(25,0,'#fd101f',i);
-	obsticles[j].pos2D = new Vector2D(Math.random()*canvas.width,Math.random()*canvas.height);
+	for (var j = 0; j < numObsticles; j++) {
+		obsticles[j] = new boidData(50, 0, '#fd101f', j);
+		var obXPos = Math.random() * (canvas.width - 2 * obsMargin) + obsMargin;
+		var obYPos = Math.random() * (canvas.height - 2 * obsMargin) + obsMargin;
+
+		obsticles[j].pos2D = new Vector2D(obXPos, obYPos);
 	}
 	t0 = new Date().getTime(); 
 	animFrame();
